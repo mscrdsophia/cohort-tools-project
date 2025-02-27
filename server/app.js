@@ -1,5 +1,7 @@
+require('dotenv').config()
 const express = require("express");
 const morgan = require("morgan");
+const mongoose = require('mongoose');
 const cookieParser = require("cookie-parser");
 const PORT = 5005;
 
@@ -22,6 +24,11 @@ app.use(express.static("public"));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(x => console.log(`Connected to Mongo! Database name: "${x.connections[0].name}"`))
+  .catch(err => console.error("Error connecting to mongo", err));
+
 
 // ROUTES - https://expressjs.com/en/starter/basic-routing.html
 // Devs Team - Start working on the routes here:
@@ -40,3 +47,4 @@ app.get("/api/students", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });
+
