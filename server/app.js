@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const PORT = 5005;
 const Student = require("./models/Students.model");
+const Cohort = require("./models/Cohorts.model");
 
 // STATIC DATA
 // Devs Team - Import the provided files with JSON data of students and cohorts here:
@@ -36,13 +37,13 @@ app.get("/docs", (req, res) => {
   res.sendFile(__dirname + "/views/docs.html");
 });
 
-app.get("/api/students", (req, res) => {
-  res.sendFile(__dirname + "/students.json");
-});
+// app.get("/api/students", (req, res) => {
+//   res.sendFile(__dirname + "/students.json");
+// });
 
-app.get("/api/cohorts", (req, res) => {
-  res.sendFile(__dirname + "/cohorts.json");
-});
+// app.get("/api/cohorts", (req, res) => {
+//   res.sendFile(__dirname + "/cohorts.json");
+// });
 
 // students
 app.post("/api/students", async (req, res) => {
@@ -56,8 +57,8 @@ app.post("/api/students", async (req, res) => {
 
 app.get("/api/students", async (req, res) => {
   try {
-    const student = await User.find().populate("studentId");
-    res.json(student);
+    const students = await Student.find();
+    res.json(students);
   } catch (error) {
     console.error(error);
   }
@@ -73,10 +74,10 @@ app.get("/api/students/cohort/:cohortId", async (req, res) => {
   }
 });
 
-app.get("api/students/:studentId", async (req, res) => {
+app.get("/api/students/:studentId", async (req, res) => {
   try {
     // user {} or null
-
+    const student = await Student.findById(req.params.studentId);
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     } else {
@@ -87,9 +88,24 @@ app.get("api/students/:studentId", async (req, res) => {
   }
 });
 
+app.put("/api/students/:studentId/cohorts/:cohortId", async (req, res) => {
+  try {
+    const student = await Student.findByIdAndUpdate(
+      req.params.studentId,
+      { $push: { cohortsId: req.params.cohortId } },
+      {
+        new: true,
+      }
+    );
+    res.json(student);
+  } catch (error) {
+    console.error(error);
+  }
+});
+
 app.put("/api/students/:studentId", async (req, res) => {
   try {
-    const student = await User.findByIdAndUpdate(
+    const student = await Student.findByIdAndUpdate(
       req.params.studentId,
       req.body,
       {
@@ -102,7 +118,7 @@ app.put("/api/students/:studentId", async (req, res) => {
   }
 });
 
-app.delete("api/students/:studentId", async (req, res) => {
+app.delete("/api/students/:studentId", async (req, res) => {
   try {
     const student = await Student.findByIdAndDelete(req.params.studentId);
     res.json(student);
@@ -114,16 +130,17 @@ app.delete("api/students/:studentId", async (req, res) => {
 //cohorts
 app.post("/api/cohorts", async (req, res) => {
   try {
-    const newCohorts = await newCohorts.create(req.body);
-    res.json(newCohorts);
+    const newCohort = await Cohort.create(req.body);
+    res.status(201).json(newCohort);
   } catch (error) {
     console.error(error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 
 app.get("/api/cohorts", async (req, res) => {
   try {
-    const cohorts = await User.find().populate("studentId");
+    const cohorts = await Cohort.find();
     res.json(cohorts);
   } catch (error) {
     console.error(error);
@@ -132,12 +149,12 @@ app.get("/api/cohorts", async (req, res) => {
 
 app.get("/api/cohorts/:cohortId", async (req, res) => {
   try {
-    const cohorts = await cohorts.findById(req.params.cohortId); // user {} or null
+    const cohort = await Cohort.findById(req.params.cohortId); // user {} or null
 
-    if (!cohorts) {
+    if (!cohort) {
       return res.status(404).json({ message: "User not found" });
     } else {
-      res.json(cohorts);
+      res.json(cohort);
     }
   } catch (error) {
     console.error(error);
@@ -145,9 +162,13 @@ app.get("/api/cohorts/:cohortId", async (req, res) => {
 });
 app.put("/api/cohorts/:cohortId", async (req, res) => {
   try {
-    const cohort = await User.findByIdAndUpdate(req.params.cohortId, req.body, {
-      new: true,
-    });
+    const cohort = await Cohort.findByIdAndUpdate(
+      req.params.cohortId,
+      req.body,
+      {
+        new: true,
+      }
+    );
     res.json(cohort);
   } catch (error) {
     console.error(error);
@@ -155,7 +176,7 @@ app.put("/api/cohorts/:cohortId", async (req, res) => {
 });
 app.delete("/api/cohorts/:cohortId", async (req, res) => {
   try {
-    const cohort = await cohort.findByIdAndDelete(req.params.cohortId);
+    const cohort = await Cohort.findByIdAndDelete(req.params.cohortId);
     res.json(cohort);
   } catch (error) {
     console.error(error);
